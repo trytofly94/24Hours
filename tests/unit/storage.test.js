@@ -103,6 +103,49 @@ describe('storage', () => {
       expect(saved.updatedAt).toBeDefined()
     })
 
+    it('should save event with minute precision', async () => {
+      const newEvent = {
+        title: 'Test Event with Minutes',
+        startHour: 9,
+        startMinute: 30,
+        endHour: 10,
+        endMinute: 45,
+      }
+
+      const saved = await saveEvent(newEvent)
+
+      expect(saved.startMinute).toBe(30)
+      expect(saved.endMinute).toBe(45)
+    })
+
+    it('should default minutes to 0 for backward compatibility', async () => {
+      const newEvent = {
+        title: 'Test Event without Minutes',
+        startHour: 9,
+        endHour: 10,
+      }
+
+      const saved = await saveEvent(newEvent)
+
+      expect(saved.startMinute).toBe(0)
+      expect(saved.endMinute).toBe(0)
+    })
+
+    it('should normalize invalid minute values', async () => {
+      const newEvent = {
+        title: 'Test Event',
+        startHour: 9,
+        startMinute: 70, // Invalid
+        endHour: 10,
+        endMinute: -5, // Invalid
+      }
+
+      const saved = await saveEvent(newEvent)
+
+      expect(saved.startMinute).toBe(59) // Clamped to max
+      expect(saved.endMinute).toBe(0) // Clamped to min
+    })
+
     it('should save event with default values', async () => {
       const newEvent = {
         title: 'Test Event',

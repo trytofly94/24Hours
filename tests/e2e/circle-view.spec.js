@@ -236,3 +236,300 @@ test.describe('24-Hour Circle Rendering', () => {
     expect(ariaHidden).not.toBe('true')
   })
 })
+
+test.describe('Event Rendering in Circle', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+
+    // Clear storage
+    await page.evaluate(() => {
+      localStorage.clear()
+      return indexedDB.deleteDatabase('24hours-db')
+    })
+
+    await page.reload()
+    await page.waitForSelector('.circle__svg')
+  })
+
+  test('should render events group in SVG', async ({ page }) => {
+    const eventsGroup = await page.locator('.circle__events')
+    await expect(eventsGroup).toBeAttached()
+  })
+
+  test('should render event arc when event is created', async ({ page }) => {
+    // Create an event
+    await page.locator('.circle__segment[data-hour="10"]').click()
+    await page.locator('#event-title').fill('Test Event')
+    await page.locator('#event-start').fill('10:00')
+    await page.locator('#event-end').fill('11:00')
+    await page.locator('#save-button').click()
+
+    // Event arc should be visible
+    const eventArc = await page.locator('.circle__event')
+    await expect(eventArc).toBeVisible()
+
+    // Should have correct data attributes
+    const eventTitle = await eventArc.getAttribute('data-event-title')
+    expect(eventTitle).toBe('Test Event')
+  })
+
+  test('should render multiple events without overlap', async ({ page }) => {
+    // Create first event
+    await page.locator('.circle__segment[data-hour="9"]').click()
+    await page.locator('#event-title').fill('Event 1')
+    await page.locator('#event-start').fill('09:00')
+    await page.locator('#event-end').fill('10:00')
+    await page.locator('#save-button').click()
+
+    // Create second event
+    await page.locator('.circle__segment[data-hour="11"]').click()
+    await page.locator('#event-title').fill('Event 2')
+    await page.locator('#event-start').fill('11:00')
+    await page.locator('#event-end').fill('12:00')
+    await page.locator('#save-button').click()
+
+    // Both events should be visible
+    const events = await page.locator('.circle__event')
+    const eventCount = await events.count()
+    expect(eventCount).toBe(2)
+  })
+
+  test('should render events with different colors based on category', async ({ page }) => {
+    // Create work event
+    await page.locator('.circle__segment[data-hour="9"]').click()
+    await page.locator('#event-title').fill('Work Event')
+    await page.locator('#event-start').fill('09:00')
+    await page.locator('#event-end').fill('10:00')
+    await page.locator('#event-category').selectOption('work')
+    await page.locator('#save-button').click()
+
+    // Create meeting event
+    await page.locator('.circle__segment[data-hour="11"]').click()
+    await page.locator('#event-title').fill('Meeting Event')
+    await page.locator('#event-start').fill('11:00')
+    await page.locator('#event-end').fill('12:00')
+    await page.locator('#event-category').selectOption('meeting')
+    await page.locator('#save-button').click()
+
+    // Get event colors
+    const workEvent = await page.locator('.circle__event[data-event-title="Work Event"]')
+    const meetingEvent = await page.locator('.circle__event[data-event-title="Meeting Event"]')
+
+    const workColor = await workEvent.getAttribute('fill')
+    const meetingColor = await meetingEvent.getAttribute('fill')
+
+    // Colors should be different
+    expect(workColor).not.toBe(meetingColor)
+  })
+
+  test('should render events with correct arc size based on duration', async ({ page }) => {
+    // Create short event (30 minutes)
+    await page.locator('.circle__segment[data-hour="9"]').click()
+    await page.locator('#event-title').fill('Short Event')
+    await page.locator('#event-start').fill('09:00')
+    await page.locator('#event-end').fill('09:30')
+    await page.locator('#save-button').click()
+
+    // Create long event (3 hours)
+    await page.locator('.circle__segment[data-hour="14"]').click()
+    await page.locator('#event-title').fill('Long Event')
+    await page.locator('#event-start').fill('14:00')
+    await page.locator('#event-end').fill('17:00')
+    await page.locator('#save-button').click()
+
+    // Both events should be visible
+    const shortEvent = await page.locator('.circle__event[data-event-title="Short Event"]')
+    const longEvent = await page.locator('.circle__event[data-event-title="Long Event"]')
+
+    await expect(shortEvent).toBeVisible()
+    await expect(longEvent).toBeVisible()
+
+    // Get path data to compare arc sizes (longer events should have larger path data)
+    const shortPath = await shortEvent.getAttribute('d')
+    const longPath = await longEvent.getAttribute('d')
+
+    // Path data for longer event should be longer (more characters)
+    expect(longPath?.length).toBeGreaterThan(shortPath?.length || 0)
+  })
+
+  test('should render vertical hour labels correctly rotated', async ({ page }) => {
+    const labelGroups = await page.locator('.circle__label-group')
+
+    // Check first major label (hour 0)
+    const firstLabel = labelGroups.first()
+    const transform = await firstLabel.getAttribute('transform')
+
+    // Should have both translate and rotate
+    expect(transform).toContain('translate')
+    expect(transform).toContain('rotate')
+  })
+
+  test('should verify labels are positioned radially', async ({ page }) => {
+    const labelGroups = await page.locator('.circle__label-group')
+    const labelCount = await labelGroups.count()
+
+    // Each label should have unique rotation based on hour
+    const rotations = []
+
+    for (let i = 0; i < labelCount; i++) {
+      const label = labelGroups.nth(i)
+      const transform = await label.getAttribute('transform')
+
+      // Extract rotation value from transform
+      const rotateMatch = transform?.match(/rotate\(([^)]+)\)/)
+      if (rotateMatch) {
+        rotations.push(rotateMatch[1])
+      }
+    }
+
+    // All rotations should be unique
+    const uniqueRotations = new Set(rotations)
+    expect(uniqueRotations.size).toBe(labelCount)
+  })
+
+  test('should show event tooltip on hover', async ({ page }) => {
+    // Create an event
+    await page.locator('.circle__segment[data-hour="10"]').click()
+    await page.locator('#event-title').fill('Hover Test Event')
+    await page.locator('#event-start').fill('10:00')
+    await page.locator('#event-end').fill('11:00')
+    await page.locator('#event-description').fill('Test description')
+    await page.locator('#save-button').click()
+
+    // Hover over event
+    const eventArc = await page.locator('.circle__event[data-event-title="Hover Test Event"]')
+    await eventArc.hover()
+
+    // Tooltip should appear
+    const tooltip = await page.locator('.circle__event-tooltip')
+    await expect(tooltip).toBeVisible()
+
+    // Tooltip should contain event details
+    await expect(tooltip).toContainText('Hover Test Event')
+    await expect(tooltip).toContainText('10:00')
+    await expect(tooltip).toContainText('11:00')
+    await expect(tooltip).toContainText('Test description')
+  })
+
+  test('should hide tooltip when mouse leaves event', async ({ page }) => {
+    // Create an event
+    await page.locator('.circle__segment[data-hour="10"]').click()
+    await page.locator('#event-title').fill('Tooltip Test')
+    await page.locator('#event-start').fill('10:00')
+    await page.locator('#event-end').fill('11:00')
+    await page.locator('#save-button').click()
+
+    const eventArc = await page.locator('.circle__event[data-event-title="Tooltip Test"]')
+
+    // Hover to show tooltip
+    await eventArc.hover()
+    await expect(page.locator('.circle__event-tooltip')).toBeVisible()
+
+    // Move away
+    await page.locator('.circle__center').hover()
+
+    // Tooltip should be hidden
+    await expect(page.locator('.circle__event-tooltip')).not.toBeVisible()
+  })
+
+  test('should maintain event visibility when resizing window', async ({ page }) => {
+    // Create an event
+    await page.locator('.circle__segment[data-hour="10"]').click()
+    await page.locator('#event-title').fill('Resize Test Event')
+    await page.locator('#event-start').fill('10:00')
+    await page.locator('#event-end').fill('11:00')
+    await page.locator('#save-button').click()
+
+    // Verify event is visible on desktop
+    await page.setViewportSize({ width: 1920, height: 1080 })
+    await expect(page.locator('.circle__event[data-event-title="Resize Test Event"]')).toBeVisible()
+
+    // Verify event is visible on tablet
+    await page.setViewportSize({ width: 768, height: 1024 })
+    await expect(page.locator('.circle__event[data-event-title="Resize Test Event"]')).toBeVisible()
+
+    // Verify event is visible on mobile
+    await page.setViewportSize({ width: 375, height: 667 })
+    await expect(page.locator('.circle__event[data-event-title="Resize Test Event"]')).toBeVisible()
+  })
+
+  test('should render events with minute precision arcs', async ({ page }) => {
+    // Create event with specific minute times
+    await page.locator('.circle__segment[data-hour="10"]').click()
+    await page.locator('#event-title').fill('Minute Precision Event')
+    await page.locator('#event-start').fill('10:15')
+    await page.locator('#event-end').fill('10:45')
+    await page.locator('#save-button').click()
+
+    // Event should be rendered
+    const eventArc = await page.locator('.circle__event[data-event-title="Minute Precision Event"]')
+    await expect(eventArc).toBeVisible()
+
+    // Get path data (should reflect minute precision in coordinates)
+    const pathData = await eventArc.getAttribute('d')
+    expect(pathData).toBeDefined()
+    expect(pathData).toContain('A') // Should contain arc command
+  })
+
+  test('should layer events correctly (z-index)', async ({ page }) => {
+    // Create first event
+    await page.locator('.circle__segment[data-hour="10"]').click()
+    await page.locator('#event-title').fill('First Event')
+    await page.locator('#event-start').fill('10:00')
+    await page.locator('#event-end').fill('11:00')
+    await page.locator('#save-button').click()
+
+    // Create second event (later)
+    await page.locator('.circle__segment[data-hour="12"]').click()
+    await page.locator('#event-title').fill('Second Event')
+    await page.locator('#event-start').fill('12:00')
+    await page.locator('#event-end').fill('13:00')
+    await page.locator('#save-button').click()
+
+    // Verify both events are visible and in events group
+    const eventsGroup = await page.locator('.circle__events')
+    const events = await eventsGroup.locator('.circle__event')
+    const eventCount = await events.count()
+
+    expect(eventCount).toBe(2)
+  })
+
+  test('should render events in correct SVG layer order', async ({ page }) => {
+    // Create an event
+    await page.locator('.circle__segment[data-hour="10"]').click()
+    await page.locator('#event-title').fill('Layer Test Event')
+    await page.locator('#event-start').fill('10:00')
+    await page.locator('#event-end').fill('11:00')
+    await page.locator('#save-button').click()
+
+    const svg = await page.locator('.circle__svg')
+
+    // Get all child groups in order
+    const groups = await svg.locator('> g')
+    const groupClasses = []
+
+    for (let i = 0; i < await groups.count(); i++) {
+      const group = groups.nth(i)
+      const className = await group.getAttribute('class')
+      if (className) {
+        groupClasses.push(className)
+      }
+    }
+
+    // Expected order: ticks → segments → events → labels → center
+    expect(groupClasses).toContain('circle__ticks')
+    expect(groupClasses).toContain('circle__segments')
+    expect(groupClasses).toContain('circle__events')
+    expect(groupClasses).toContain('circle__labels')
+    expect(groupClasses).toContain('circle__center-group')
+
+    // Events should be between segments and labels
+    const segmentsIndex = groupClasses.indexOf('circle__segments')
+    const eventsIndex = groupClasses.indexOf('circle__events')
+    const labelsIndex = groupClasses.indexOf('circle__labels')
+
+    expect(eventsIndex).toBeGreaterThan(segmentsIndex)
+    expect(labelsIndex).toBeGreaterThan(eventsIndex)
+  })
+})
