@@ -94,9 +94,14 @@ function createHourLabel(hour) {
     CONFIG.centerY
   )
 
+  // Calculate rotation angle for vertical (radial) orientation
+  // Hour 0 is at top (0°), hour 6 is at right (90°), etc.
+  const rotationAngle = (hour * 15) // 15° per hour
+
   const group = createSVGElement('g', {
     class: 'circle__label-group',
-    transform: `translate(${position.x}, ${position.y})`
+    // First translate to position, then rotate for radial alignment
+    transform: `translate(${position.x}, ${position.y}) rotate(${rotationAngle})`
   })
 
   const text = createSVGElement('text', {

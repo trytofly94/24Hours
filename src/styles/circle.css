@@ -64,8 +64,8 @@
 
 /* Hour Labels */
 .circle__label-group {
-  transform: rotate(90deg); /* Counter-rotate to keep text upright */
   pointer-events: none;
+  /* Rotation is now handled per-label in JavaScript for radial alignment */
 }
 
 .circle__label {
