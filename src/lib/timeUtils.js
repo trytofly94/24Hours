@@ -170,18 +170,32 @@ export function getHourPosition(hour, radius, centerX, centerY) {
  * @returns {boolean} True if ranges overlap
  */
 export function timeRangesOverlap(start1, end1, start2, end2) {
-  // Handle ranges that cross midnight
-  const normalize = (start, end) => {
-    if (end < start) {
-      return { start, end: end + HOURS_IN_DAY }
-    }
-    return { start, end }
+  // Handle ranges that cross midnight by checking if they overlap
+  // in the normalized 24-hour space or in the wrapped space
+
+  // Check if range crosses midnight
+  const range1CrossesMidnight = end1 < start1
+  const range2CrossesMidnight = end2 < start2
+
+  // If neither crosses midnight, simple check
+  if (!range1CrossesMidnight && !range2CrossesMidnight) {
+    return start1 < end2 && start2 < end1
   }
 
-  const range1 = normalize(start1, end1)
-  const range2 = normalize(start2, end2)
+  // If range1 crosses midnight (e.g., 22-2)
+  if (range1CrossesMidnight && !range2CrossesMidnight) {
+    // Range1 is either [start1, 24) or [0, end1)
+    return start2 < end1 || start1 < end2
+  }
 
-  return range1.start < range2.end && range2.start < range1.end
+  // If range2 crosses midnight
+  if (!range1CrossesMidnight && range2CrossesMidnight) {
+    // Range2 is either [start2, 24) or [0, end2)
+    return start1 < end2 || start2 < end1
+  }
+
+  // Both cross midnight - they always overlap
+  return true
 }
 
 /**
