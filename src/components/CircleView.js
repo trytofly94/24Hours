@@ -73,7 +73,7 @@ function createHourSegment(hour, onClick) {
 
   // Add hover tooltip
   segment.addEventListener('mouseenter', (e) => {
-    segment.setAttribute('data-tooltip', `${formatTime(hour)}:00`)
+    segment.setAttribute('data-tooltip', formatTime(hour))
   })
 
   return segment
