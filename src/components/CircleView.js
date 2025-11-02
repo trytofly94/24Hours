@@ -6,6 +6,7 @@
 import {
   HOURS_IN_DAY,
   calculateArcPath,
+  calculateEventArcPath,
   getHourPosition,
   getCurrentHour,
   formatTime
@@ -183,6 +184,80 @@ function createTickMarks() {
 }
 
 /**
+ * Create event arc element
+ * @param {Object} event - Event object
+ * @param {Function} onEventClick - Click handler for events
+ * @returns {SVGPathElement} Event arc path
+ */
+function createEventArc(event, onEventClick) {
+  const path = calculateEventArcPath(
+    event.startHour,
+    event.startMinute || 0,
+    event.endHour,
+    event.endMinute || 0,
+    CONFIG.outerRadius,
+    CONFIG.centerX,
+    CONFIG.centerY,
+    CONFIG.innerRadius
+  )
+
+  const eventArc = createSVGElement('path', {
+    class: 'circle__event',
+    d: path,
+    fill: event.color || '#4F46E5',
+    'data-event-id': event.id,
+    'data-event-title': event.title
+  })
+
+  // Add click handler
+  eventArc.addEventListener('click', (e) => {
+    e.stopPropagation()
+    onEventClick(event)
+  })
+
+  // Add hover tooltip
+  let tooltip = null
+
+  eventArc.addEventListener('mouseenter', (e) => {
+    // Create tooltip
+    tooltip = document.createElement('div')
+    tooltip.className = 'circle__event-tooltip'
+    tooltip.innerHTML = `
+      <div class="circle__event-tooltip-title">${event.title}</div>
+      <div class="circle__event-tooltip-time">
+        ${formatTime(event.startHour, event.startMinute || 0)} -
+        ${formatTime(event.endHour, event.endMinute || 0)}
+      </div>
+      ${event.description ? `<div class="circle__event-tooltip-desc">${event.description}</div>` : ''}
+    `
+    document.body.appendChild(tooltip)
+
+    // Position tooltip
+    const updateTooltipPosition = (mouseEvent) => {
+      tooltip.style.left = `${mouseEvent.pageX + 10}px`
+      tooltip.style.top = `${mouseEvent.pageY + 10}px`
+    }
+
+    updateTooltipPosition(e)
+    eventArc.addEventListener('mousemove', updateTooltipPosition)
+    eventArc._updateTooltip = updateTooltipPosition
+  })
+
+  eventArc.addEventListener('mouseleave', () => {
+    if (tooltip) {
+      tooltip.remove()
+      tooltip = null
+    }
+    if (eventArc._updateTooltip) {
+      eventArc.removeEventListener('mousemove', eventArc._updateTooltip)
+      eventArc._updateTooltip = null
+    }
+  })
+
+  return eventArc
+}
+
+/**
  * Update center time display
  * @param {SVGElement} svg - SVG container element
  */
@@ -209,9 +284,10 @@ function updateCenterTime(svg) {
  * Create and render the complete circle view
  * @param {HTMLElement} container - Container element for the circle
  * @param {Function} onSegmentClick - Callback for segment clicks
+ * @param {Function} onEventClick - Callback for event clicks
  * @returns {Object} Circle view API
  */
-export function createCircleView(container, onSegmentClick = () => {}) {
+export function createCircleView(container, onSegmentClick = () => {}, onEventClick = () => {}) {
   // Clear container
   container.innerHTML = ''
 
@@ -242,6 +318,13 @@ export function createCircleView(container, onSegmentClick = () => {}) {
   }
 
   svg.appendChild(segmentsGroup)
+
+  // Create events group (between segments and labels)
+  const eventsGroup = createSVGElement('g', {
+    class: 'circle__events'
+  })
+
+  svg.appendChild(eventsGroup)
 
   // Create labels
   const labelsGroup = createSVGElement('g', {
@@ -328,6 +411,32 @@ export function createCircleView(container, onSegmentClick = () => {}) {
      */
     refresh() {
       updateCenterTime(svg)
+    },
+
+    /**
+     * Render events in the circle
+     * @param {Array} events - Array of event objects to render
+     */
+    renderEvents(events) {
+      // Clear existing events
+      eventsGroup.innerHTML = ''
+
+      // Render each event
+      events.forEach((event) => {
+        const eventArc = createEventArc(event, onEventClick)
+        eventsGroup.appendChild(eventArc)
+      })
+    },
+
+    /**
+     * Refresh events from storage
+     * @param {Function} getEventsCallback - Async function to get events
+     */
+    async refreshEvents(getEventsCallback) {
+      if (typeof getEventsCallback === 'function') {
+        const events = await getEventsCallback()
+        this.renderEvents(events)
+      }
     }
   }
 }

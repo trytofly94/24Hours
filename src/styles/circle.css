@@ -126,15 +126,15 @@
   fill: var(--color-primary);
   stroke: white;
   stroke-width: 2px;
-  opacity: 0.9;
+  opacity: 0.8;
   transition: all var(--transition-fast);
   cursor: pointer;
 }
 
 .circle__event:hover {
   opacity: 1;
-  transform: scale(1.1);
-  filter: drop-shadow(0 2px 8px rgba(79, 70, 229, 0.5));
+  transform: scale(1.05);
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
 }
 
 .circle__event--work {
@@ -151,6 +151,41 @@
 
 .circle__event--break {
   fill: var(--color-success);
+}
+
+/* Event Tooltip */
+.circle__event-tooltip {
+  position: fixed;
+  background-color: rgba(31, 41, 55, 0.95);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  pointer-events: none;
+  z-index: 10000;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-width: 250px;
+  line-height: 1.4;
+}
+
+.circle__event-tooltip-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.circle__event-tooltip-time {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  margin-bottom: 0.25rem;
+}
+
+.circle__event-tooltip-desc {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  padding-top: 0.5rem;
 }
 
 /* Responsive Adjustments */
