@@ -88,7 +88,9 @@ export async function getEventsByDate(date) {
  * @param {Object} event - Event object
  * @param {string} event.title - Event title
  * @param {number} event.startHour - Start hour (0-23)
+ * @param {number} [event.startMinute=0] - Start minute (0-59)
  * @param {number} event.endHour - End hour (0-23)
+ * @param {number} [event.endMinute=0] - End minute (0-59)
  * @param {string} [event.description] - Event description
  * @param {string} [event.category] - Event category
  * @param {string} [event.color] - Event color
@@ -102,12 +104,18 @@ export async function saveEvent(event) {
       throw new Error('Missing required event fields: title, startHour, endHour')
     }
 
+    // Normalize and validate minute values
+    const startMinute = normalizeMinute(event.startMinute)
+    const endMinute = normalizeMinute(event.endMinute)
+
     // Generate ID if not provided
     const eventWithId = {
       id: event.id || generateId(),
       title: event.title,
       startHour: event.startHour,
+      startMinute,
       endHour: event.endHour,
+      endMinute,
       description: event.description || '',
       category: event.category || 'general',
       color: event.color || '#4F46E5',
@@ -133,6 +141,34 @@ export async function saveEvent(event) {
     console.error('Failed to save event:', error)
     throw error
   }
+}
+
+/**
+ * Normalize minute value to valid range (0-59)
+ * Provides backward compatibility for events without minute data
+ * @param {number|undefined} minute - Minute value
+ * @returns {number} Normalized minute value (0-59)
+ */
+function normalizeMinute(minute) {
+  if (minute === undefined || minute === null) {
+    return 0
+  }
+
+  const parsed = parseInt(minute, 10)
+
+  if (isNaN(parsed)) {
+    return 0
+  }
+
+  // Clamp to valid range
+  if (parsed < 0) {
+    return 0
+  }
+  if (parsed > 59) {
+    return 59
+  }
+
+  return parsed
 }
 
 /**
