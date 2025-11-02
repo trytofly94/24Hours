@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#4F46E5">
+  <meta name="description" content="24Hours - Intuitive day planner with 24-hour circle visualization">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="24Hours">
+
+  <!-- Manifest -->
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- Icons -->
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
+  <title>24Hours - Day Planner</title>
+</head>
+<body>
+  <!-- App Container -->
+  <div id="app">
+
+    <!-- Header -->
+    <header class="app-header">
+      <h1 class="app-header__title">24Hours</h1>
+      <nav class="app-header__nav">
+        <button class="app-header__button" id="settings-button" aria-label="Settings" title="Settings">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6m8.66-8.66l-5.2 3m-6.92 4l-5.2 3M1 12h6m6 0h6m-3.34-8.66l-3 5.2m-4 6.92l-3 5.2m13.94-1.54l-3-5.2m-4-6.92l-3-5.2"></path>
+          </svg>
+        </button>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <!-- Circle Container -->
+      <div class="circle-container" id="circle-container">
+        <!-- Circle will be rendered here by JavaScript -->
+      </div>
+
+      <!-- Info Panel (for current time/date) -->
+      <div class="info-panel">
+        <div class="info-panel__date" id="current-date"></div>
+        <div class="info-panel__time" id="current-time"></div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <button class="btn btn--primary" id="add-event-button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Add Event
+      </button>
+    </footer>
+
+  </div>
+
+  <!-- Loading Indicator -->
+  <div class="loading" id="loading" hidden>
+    <div class="loading__spinner"></div>
+  </div>
+
+  <!-- Module Script -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
