@@ -7,9 +7,15 @@ Eine moderne Progressive Web App (PWA), die Ihren Tag als 24-Stunden-Kreis visua
 ## ✨ Features
 
 - 🔄 **Kreisförmige 24-Stunden-Visualisierung**: Sehen Sie Ihren ganzen Tag auf einen Blick
+- ⏱️ **Minutengenaue Event-Planung**: Präzise Zeiterfassung für Events (nicht nur volle Stunden)
+- 📍 **Vertikale Zeitlabels**: Radial ausgerichtete Stunden-Labels für bessere Lesbarkeit
+- 📝 **Intuitive Event-Erstellung**: Klicken Sie auf den Kreis, um sofort Events zu erstellen
+- 🎨 **Farbcodierte Kategorien**: Organisieren Sie Events nach Typ (Work, Personal, Meeting, Break, Other)
+- 🖼️ **Event-Tooltips**: Hover-Effekte zeigen Event-Details direkt im Kreis
+- ✏️ **Event-Bearbeitung**: Klicken Sie auf Events, um sie zu bearbeiten oder zu löschen
+- 🔍 **Überschneidungs-Erkennung**: Automatische Validierung verhindert doppelte Buchungen
 - 📱 **Progressive Web App**: Installierbar auf Mobile und Desktop, funktioniert offline
 - 💾 **Lokale Datenspeicherung**: Ihre Daten bleiben auf Ihrem Gerät (IndexedDB)
-- 🎨 **Farbcodierte Kategorien**: Organisieren Sie Events nach Typ (Arbeit, Freizeit, etc.)
 - ⚡ **Schnell & Reaktionsschnell**: Vite-basiert für optimale Performance
 - 🌐 **Offline-First**: Arbeiten Sie ohne Internetverbindung
 
@@ -65,16 +71,41 @@ Das Build wird im `dist/` Ordner erstellt und kann auf jedem Static-Hosting-Serv
 
 ### Event erstellen
 
-1. Klicken Sie auf einen Zeitbereich im 24-Stunden-Kreis
-2. Geben Sie Titel, Beschreibung und wählen Sie eine Kategorie
-3. Passen Sie die Start- und Endzeit an
-4. Klicken Sie auf "Speichern"
+1. **Via Kreis**: Klicken Sie direkt auf eine Stunde im 24-Stunden-Kreis
+   - Das Modal öffnet sich mit der geklickten Stunde als Start-Zeit
+   - Standard-Dauer: 1 Stunde
+
+2. **Via Button**: Klicken Sie auf den "Add Event" Button (wenn vorhanden)
+   - Das Modal öffnet sich mit der aktuellen Uhrzeit
+
+3. **Im Modal**:
+   - Geben Sie einen Titel ein (Pflichtfeld)
+   - Wählen Sie Start- und End-Zeit mit minutengenauer Präzision
+   - Optional: Beschreibung hinzufügen
+   - Kategorie auswählen (Work, Personal, Meeting, Break, Other)
+   - Farbauswahl für das Event (Voreinstellung basierend auf Kategorie)
+   - Klicken Sie auf "Save Event"
 
 ### Event bearbeiten
 
-- Klicken Sie auf ein existierendes Event im Kreis
-- Bearbeiten Sie die Details im Modal
-- Speichern Sie oder löschen Sie das Event
+1. Klicken Sie auf ein existierendes Event im Kreis
+2. Das Modal öffnet sich im Edit-Modus mit vorausgefüllten Daten
+3. Nehmen Sie Ihre Änderungen vor
+4. Klicken Sie auf "Save Event" oder "Delete" zum Löschen
+
+### Event-Tooltips
+
+- Bewegen Sie die Maus über ein Event im Kreis
+- Ein Tooltip erscheint mit:
+  - Event-Titel
+  - Start- und End-Zeit (mit Minuten)
+  - Beschreibung (falls vorhanden)
+
+### Überschneidungs-Validierung
+
+- Beim Speichern prüft die App automatisch auf Zeitüberschneidungen
+- Bei Konflikten wird eine Fehlermeldung mit dem überschneidenden Event angezeigt
+- Edit-Modus ignoriert das aktuell bearbeitete Event bei der Prüfung
 
 ### App installieren (PWA)
 
