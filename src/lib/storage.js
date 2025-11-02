@@ -11,7 +11,7 @@ import localforage from 'localforage'
 const storage = localforage.createInstance({
   name: '24hours-db',
   storeName: 'events',
-  description: 'Event storage for 24Hours day planner',
+  description: 'Event storage for 24Hours day planner'
 })
 
 /**
@@ -20,7 +20,7 @@ const storage = localforage.createInstance({
 const KEYS = {
   EVENTS: 'events',
   SETTINGS: 'settings',
-  LAST_SYNC: 'lastSync',
+  LAST_SYNC: 'lastSync'
 }
 
 /**
@@ -31,7 +31,7 @@ const DEFAULT_SETTINGS = {
   notifications: true,
   firstDayOfWeek: 1, // Monday
   timeFormat: '24h',
-  language: 'en',
+  language: 'en'
 }
 
 /**
@@ -113,7 +113,7 @@ export async function saveEvent(event) {
       color: event.color || '#4F46E5',
       date: event.date || new Date().toISOString(),
       createdAt: event.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
 
     const events = await getEvents()
@@ -156,7 +156,7 @@ export async function updateEvent(id, updates) {
       ...events[eventIndex],
       ...updates,
       id, // Ensure ID cannot be changed
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
 
     await storage.setItem(KEYS.EVENTS, events)
@@ -296,7 +296,7 @@ export async function exportData() {
       events,
       settings,
       lastSync,
-      exportedAt: new Date().toISOString(),
+      exportedAt: new Date().toISOString()
     }
   } catch (error) {
     console.error('Failed to export data:', error)

@@ -50,7 +50,7 @@ export function formatDate(date = new Date()) {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
-    day: 'numeric',
+    day: 'numeric'
   })
 }
 
@@ -124,7 +124,7 @@ export function calculateArcPath(
       `M ${centerX} ${centerY}`, // Move to center
       `L ${x1} ${y1}`, // Line to start of arc
       `A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`, // Arc
-      'Z', // Close path
+      'Z' // Close path
     ].join(' ')
   } else {
     // Donut segment
@@ -138,7 +138,7 @@ export function calculateArcPath(
       `A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`, // Outer arc
       `L ${x3} ${y3}`, // Line to inner arc
       `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${x4} ${y4}`, // Inner arc (reverse)
-      'Z', // Close path
+      'Z' // Close path
     ].join(' ')
   }
 }
@@ -157,7 +157,7 @@ export function getHourPosition(hour, radius, centerX, centerY) {
 
   return {
     x: centerX + radius * Math.sin(rad),
-    y: centerY - radius * Math.cos(rad),
+    y: centerY - radius * Math.cos(rad)
   }
 }
 

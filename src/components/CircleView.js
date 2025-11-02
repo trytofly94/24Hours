@@ -8,7 +8,7 @@ import {
   calculateArcPath,
   getHourPosition,
   getCurrentHour,
-  formatTime,
+  formatTime
 } from '../lib/timeUtils.js'
 
 /**
@@ -22,7 +22,7 @@ const CONFIG = {
   innerRadius: 120,
   labelRadius: 150,
   centerCircleRadius: 80,
-  majorHours: [0, 3, 6, 9, 12, 15, 18, 21],
+  majorHours: [0, 3, 6, 9, 12, 15, 18, 21]
 }
 
 /**
@@ -60,7 +60,7 @@ function createHourSegment(hour, onClick) {
   const segment = createSVGElement('path', {
     class: 'circle__segment',
     d: path,
-    'data-hour': hour,
+    'data-hour': hour
   })
 
   // Mark current hour
@@ -95,13 +95,13 @@ function createHourLabel(hour) {
 
   const group = createSVGElement('g', {
     class: 'circle__label-group',
-    transform: `translate(${position.x}, ${position.y})`,
+    transform: `translate(${position.x}, ${position.y})`
   })
 
   const text = createSVGElement('text', {
     class: isMajor ? 'circle__label circle__label--major' : 'circle__label circle__label--minor',
     x: 0,
-    y: 0,
+    y: 0
   })
 
   text.textContent = hour
@@ -116,7 +116,7 @@ function createHourLabel(hour) {
  */
 function createCenterCircle() {
   const group = createSVGElement('g', {
-    class: 'circle__center-group',
+    class: 'circle__center-group'
   })
 
   // Background circle
@@ -124,7 +124,7 @@ function createCenterCircle() {
     class: 'circle__center',
     cx: CONFIG.centerX,
     cy: CONFIG.centerY,
-    r: CONFIG.centerCircleRadius,
+    r: CONFIG.centerCircleRadius
   })
 
   // Time text
@@ -132,7 +132,7 @@ function createCenterCircle() {
     class: 'circle__center-text',
     x: CONFIG.centerX,
     y: CONFIG.centerY - 10,
-    id: 'center-time',
+    id: 'center-time'
   })
 
   // Date text (smaller, below time)
@@ -141,7 +141,7 @@ function createCenterCircle() {
     x: CONFIG.centerX,
     y: CONFIG.centerY + 15,
     id: 'center-date',
-    style: 'font-size: 14px; fill: var(--color-text-secondary);',
+    style: 'font-size: 14px; fill: var(--color-text-secondary);'
   })
 
   group.appendChild(circle)
@@ -157,7 +157,7 @@ function createCenterCircle() {
  */
 function createTickMarks() {
   const group = createSVGElement('g', {
-    class: 'circle__ticks',
+    class: 'circle__ticks'
   })
 
   for (let hour = 0; hour < HOURS_IN_DAY; hour++) {
@@ -173,7 +173,7 @@ function createTickMarks() {
       x1: innerPos.x,
       y1: innerPos.y,
       x2: outerPos.x,
-      y2: outerPos.y,
+      y2: outerPos.y
     })
 
     group.appendChild(tick)
@@ -219,7 +219,7 @@ export function createCircleView(container, onSegmentClick = () => {}) {
   const svg = createSVGElement('svg', {
     class: 'circle__svg',
     viewBox: `0 0 ${CONFIG.viewBox} ${CONFIG.viewBox}`,
-    xmlns: 'http://www.w3.org/2000/svg',
+    xmlns: 'http://www.w3.org/2000/svg'
   })
 
   // Add wrapper div with circle class
@@ -233,7 +233,7 @@ export function createCircleView(container, onSegmentClick = () => {}) {
 
   // Create hour segments
   const segmentsGroup = createSVGElement('g', {
-    class: 'circle__segments',
+    class: 'circle__segments'
   })
 
   for (let hour = 0; hour < HOURS_IN_DAY; hour++) {
@@ -245,7 +245,7 @@ export function createCircleView(container, onSegmentClick = () => {}) {
 
   // Create labels
   const labelsGroup = createSVGElement('g', {
-    class: 'circle__labels',
+    class: 'circle__labels'
   })
 
   CONFIG.majorHours.forEach((hour) => {
@@ -328,6 +328,6 @@ export function createCircleView(container, onSegmentClick = () => {}) {
      */
     refresh() {
       updateCenterTime(svg)
-    },
+    }
   }
 }
