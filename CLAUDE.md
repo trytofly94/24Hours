@@ -237,6 +237,93 @@ npm run build:sw
   - Teste Installation als PWA
 - **Mock-Daten**: Erstelle Mock-Events in `tests/mocks/events.js`
 
+#### Playwright MCP Testing
+
+**Verfügbare MCP-Tools für Browser-Testing:**
+
+Der Tester-Agent hat Zugriff auf spezielle Playwright MCP-Tools, die direkte Browser-Interaktionen ermöglichen. Diese Tools sind besonders nützlich für interaktives Testing und Debugging.
+
+**Kern-Tools:**
+- `mcp__playwright__browser_navigate(url)`: Navigiere zu einer URL
+- `mcp__playwright__browser_snapshot()`: Erstelle eine Accessibility-Snapshot (bevorzugt gegenüber Screenshot für Aktionen)
+- `mcp__playwright__browser_take_screenshot(options)`: Screenshot der aktuellen Seite
+- `mcp__playwright__browser_click(element, ref)`: Klicke auf ein Element
+- `mcp__playwright__browser_type(element, ref, text)`: Tippe Text in ein Element
+- `mcp__playwright__browser_fill_form(fields)`: Fülle mehrere Formularfelder aus
+- `mcp__playwright__browser_evaluate(function)`: Führe JavaScript im Browser aus
+- `mcp__playwright__browser_wait_for(options)`: Warte auf Text/Zeit
+- `mcp__playwright__browser_console_messages()`: Zeige Console-Logs
+- `mcp__playwright__browser_handle_dialog(accept, promptText)`: Handle Dialoge/Alerts
+
+**Empfohlener Test-Workflow:**
+
+1. **Setup**: Starte Dev-Server (`npm run dev`)
+2. **Navigate**: `browser_navigate('http://localhost:5173')`
+3. **Inspect**: `browser_snapshot()` um UI-Status zu erfassen
+4. **Interact**: `browser_click()`, `browser_type()`, `browser_fill_form()`
+5. **Verify**: `browser_snapshot()` oder `browser_evaluate()` für Assertions
+6. **Debug**: `browser_console_messages()` bei Fehlern
+
+**Beispiel: Event-Erstellung testen**
+
+```javascript
+// 1. Navigate zur App
+await browser_navigate('http://localhost:5173')
+
+// 2. Erfasse initialen Zustand
+await browser_snapshot()
+
+// 3. Klicke auf Stunden-Segment (z.B. 9 Uhr)
+await browser_click('9 Uhr Segment', '[data-hour="9"]')
+
+// 4. Erfasse Modal-Zustand
+await browser_snapshot()
+
+// 5. Fülle Event-Formular aus
+await browser_fill_form([
+  { name: 'Event Titel', ref: '#event-title', type: 'textbox', value: 'Meeting' },
+  { name: 'Start-Zeit', ref: '#event-start', type: 'textbox', value: '09:00' },
+  { name: 'End-Zeit', ref: '#event-end', type: 'textbox', value: '10:00' }
+])
+
+// 6. Speichere Event
+await browser_click('Speichern Button', '#event-save-btn')
+
+// 7. Verifiziere Event im Kreis
+const eventVisible = await browser_evaluate(() => {
+  return document.querySelector('[data-event-id]') !== null
+})
+
+// 8. Prüfe Console auf Fehler
+await browser_console_messages({ onlyErrors: true })
+```
+
+**Testing-Strategie:**
+
+- **Unit-Tests (Vitest)**: Isolierte Logik (timeUtils, storage, eventManager)
+  - Schnell, deterministisch
+  - Keine Browser-Abhängigkeiten
+  - Fokus auf Business-Logik
+
+- **E2E-Tests (Playwright Scripts)**: User-Flows in `tests/e2e/`
+  - Automatisierte Tests mit playwright.config.js
+  - CI/CD Integration
+  - Regression-Testing
+
+- **Playwright MCP (Interactive)**: Manuelles Testing & Debugging
+  - Exploratives Testing
+  - UI-Debugging
+  - Schnelles Feedback während Entwicklung
+  - Besser als Screenshot: `browser_snapshot()` liefert strukturierte Accessibility-Daten
+
+**Best Practices:**
+- Nutze `browser_snapshot()` statt Screenshot für Test-Aktionen (strukturierte Daten)
+- Nutze `browser_take_screenshot()` nur für visuelle Dokumentation
+- Warte auf Netzwerk-Idle mit `browser_wait_for()` nach Interaktionen
+- Prüfe Console-Errors mit `browser_console_messages({ onlyErrors: true })`
+- Nutze `data-testid` Attribute für robuste Element-Selektion
+- Handle Dialogs explizit mit `browser_handle_dialog()`
+
 ### Für den Deployer-Agent (`deployer`)
 - **Build-Check**: Führe `npm run build` aus und prüfe auf Fehler
 - **PR-Template**: Füge folgendes hinzu:
